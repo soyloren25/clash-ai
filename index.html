@@ -1,1 +1,86 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clash AI</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #101827;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+h1 { color: #ffd43b; }
+.card {
+  background: #1e293b;
+  padding: 18px;
+  border-radius: 15px;
+  margin: 15px auto;
+  max-width: 420px;
+}
+button {
+  background: #f5b82e;
+  color: #172033;
+  border: 0;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 16px;
+}
+#result { margin-top: 15px; }
+</style>
+</head>
+<body>
+
+<h1>🤖 CLASH AI</h1>
+<p>Entrenamiento de inteligencia artificial</p>
+
+<div class="card">
+<h2>🐉 Tu mazo</h2>
+<p>Dragón infernal</p>
+<p>Valquiria</p>
+<p>Globo</p>
+<p>Descarga</p>
+<p>Dragones esqueleto</p>
+<p>Bola de fuego</p>
+<p>Sabueso de lava</p>
+<p>Guardias</p>
+</div>
+
+<div class="card">
+<h2>🧠 Entrenamiento</h2>
+<p>Partidas simuladas: <span id="games">0</span></p>
+<p>Victorias: <span id="wins">0</span></p>
+<p>Derrotas: <span id="losses">0</span></p>
+<button onclick="train()">ENTRENAR IA</button>
+<div id="result"></div>
+</div>
+
+<script>
+let games = 0;
+let wins = 0;
+let losses = 0;
+
+function train() {
+  games++;
+  let victory = Math.random() < 0.5;
+
+  if (victory) wins++;
+  else losses++;
+
+  document.getElementById("games").textContent = games;
+  document.getElementById("wins").textContent = wins;
+  document.getElementById("losses").textContent = losses;
+
+  document.getElementById("result").textContent =
+    victory ? "🏆 Victoria simulada" : "💀 Derrota simulada";
+}
+</script>
+
+</body>
+</html>
+
