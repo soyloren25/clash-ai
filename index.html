@@ -155,7 +155,7 @@ function play() {
   else losses++;
 
   epsilon = Math.max(0.05,epsilon*0.999);
-
+saveData();
   document.getElementById("result").innerHTML =
     (victory ? "🏆 Victoria simulada" : "💀 Derrota simulada") +
     "<br>Rival: " + opponents[opponent] +
