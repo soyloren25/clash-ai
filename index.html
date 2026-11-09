@@ -138,6 +138,18 @@ const learningRate = 0.25;
   }
 function saveData() {
   function resetAI() {
+  function saveData() {
+  localStorage.setItem("clashAIData", JSON.stringify({
+    scores,
+    attempts,
+    games,
+    wins,
+    losses,
+    epsilon
+  }));
+}
+
+function resetAI() {
   if (!confirm("¿Seguro que quieres reiniciar todo el aprendizaje?")) return;
 
   scores = [[0,0,0],[0,0,0],[0,0,0]];
@@ -147,17 +159,9 @@ function saveData() {
   losses = 0;
   epsilon = 0.25;
 
-  localStorage.removeItem("clashAIData");
+  saveData();
   location.reload();
-  }
-  localStorage.setItem("clashAIData", JSON.stringify({
-    scores,
-    attempts,
-    games,
-    wins,
-    losses,
-    epsilon
-  }));
+}
 }
 // Ventaja inicial aproximada de cada estrategia
 const matchup = [
