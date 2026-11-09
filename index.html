@@ -100,6 +100,19 @@ let epsilon = savedData ? savedData.epsilon : 0.25;
 
 const learningRate = 0.25;
 function saveData() {
+  function resetAI() {
+  if (!confirm("¿Seguro que quieres reiniciar todo el aprendizaje?")) return;
+
+  scores = [[0,0,0],[0,0,0],[0,0,0]];
+  attempts = [[0,0,0],[0,0,0],[0,0,0]];
+  games = 0;
+  wins = 0;
+  losses = 0;
+  epsilon = 0.25;
+
+  localStorage.removeItem("clashAIData");
+  location.reload();
+  }
   localStorage.setItem("clashAIData", JSON.stringify({
     scores,
     attempts,
