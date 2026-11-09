@@ -98,7 +98,16 @@ let losses = savedData ? savedData.losses : 78;
 let epsilon = savedData ? savedData.epsilon : 0.25;
 
 const learningRate = 0.25;
-
+function saveData() {
+  localStorage.setItem("clashAIData", JSON.stringify({
+    scores,
+    attempts,
+    games,
+    wins,
+    losses,
+    epsilon
+  }));
+}
 // Ventaja inicial aproximada de cada estrategia
 const matchup = [
   [0.35,0.75,0.60],
