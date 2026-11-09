@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Clash AI - Entrenamiento</title>
+
 <style>
 body {
   margin:0;
@@ -29,7 +30,7 @@ button {
   padding:14px 18px;
   border-radius:10px;
   font-weight:bold;
-  font-size:16px;
+  font-size:15px;
   margin:6px;
 }
 .stat {color:#ffd43b;font-weight:bold}
@@ -40,8 +41,43 @@ button {
   margin:8px 0;
 }
 .small {color:#cbd5e1;font-size:13px}
+#winChart {
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:8px;
+  height:180px;
+  padding:15px 5px 5px;
+  overflow-x:auto;
+}
+.chartColumn {
+  min-width:35px;
+  flex:1;
+  max-width:55px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  height:100%;
+}
+.chartBar {
+  background:#f5b82e;
+  border-radius:6px 6px 0 0;
+  min-height:3px;
+  width:100%;
+}
+.chartLabel {
+  font-size:10px;
+  color:#cbd5e1;
+  margin-top:5px;
+}
+.chartValue {
+  font-size:10px;
+  color:#ffd43b;
+  margin-bottom:4px;
+}
 </style>
 </head>
+
 <body>
 
 <h1>🤖 CLASH AI</h1>
@@ -57,12 +93,13 @@ button {
 
 <div class="card">
 <h2>🧠 Entrenamiento</h2>
+
 <p>Partidas: <span class="stat" id="games">0</span></p>
 <p>Victorias: <span class="stat" id="wins">0</span></p>
 <p>Derrotas: <span class="stat" id="losses">0</span></p>
 <p>Porcentaje de victorias: <span class="stat" id="rate">0%</span></p>
 
-<div id="trainingHistory" style="background:#1e293b;padding:15px;margin:15px;border-radius:12px;">
+<div id="trainingHistory">
 <h3>📊 HISTORIAL DE ENTRENAMIENTO</h3>
 <p id="historyGames">Partidas entrenadas: 0</p>
 <p id="historyWinRate">Victorias: 0%</p>
@@ -78,12 +115,21 @@ button {
 </div>
 
 <div class="card">
+<h2>📈 EVOLUCIÓN DE LA IA</h2>
+<p class="small">Porcentaje de victorias cada 100 partidas</p>
+<div id="winChart">
+<p>Entrena 100 partidas para generar el gráfico.</p>
+</div>
+</div>
+
+<div class="card">
 <h2>📚 Estrategias aprendidas</h2>
 <div id="strategies"></div>
 <p class="small">La IA ajusta sus puntuaciones según los resultados de las simulaciones.</p>
 </div>
 
 <script>
+
 const strategies = [
   "Sabueso + Globo",
   "Defensa y contraataque",
@@ -108,17 +154,18 @@ function emptyMatrix() {
   return [[0,0,0],[0,0,0],[0,0,0]];
 }
 
-// Cargar datos guardados
 function loadData() {
   try {
     const data = JSON.parse(localStorage.getItem("clashAIData"));
+
     if (data && Array.isArray(data.scores) &&
         Array.isArray(data.attempts)) {
       return data;
     }
-  } catch (error) {
-    console.log("No se pudieron cargar los datos guardados.");
+  } catch(error) {
+    console.log("No se pudieron cargar los datos.");
   }
+
   return null;
 }
 
@@ -131,7 +178,9 @@ let wins = savedData ? savedData.wins : 0;
 let losses = savedData ? savedData.losses : 0;
 let epsilon = savedData ? savedData.epsilon : 0.25;
 
-// Guardar aprendizaje
+let winHistory = savedData && Array.isArray(savedData.winHistory)
+  ? savedData.winHistory : [];
+
 function saveData() {
   localStorage.setItem("clashAIData", JSON.stringify({
     scores,
@@ -139,11 +188,12 @@ function saveData() {
     games,
     wins,
     losses,
-    epsilon
+    epsilon,
+    winHistory
   }));
 }
 
-// Reiniciar completamente la IA
+// Reiniciar IA
 function resetAI() {
   if (!confirm("¿Seguro que quieres reiniciar todo el aprendizaje?")) {
     return;
@@ -155,44 +205,15 @@ function resetAI() {
   wins = 0;
   losses = 0;
   epsilon = 0.25;
+  winHistory = [];
 
   saveData();
   update();
   updateHistory();
+  updateChart();
 
   document.getElementById("result").textContent =
-    "IA reiniciada correctamente. ¡Empieza de nuevo!";
-}
-
-// Historial
-function updateHistory() {
-  document.getElementById("historyGames").textContent =
-    "Partidas entrenadas: " + games;
-
-  document.getElementById("historyWinRate").textContent =
-    "Victorias: " +
-    (games ? (wins / games * 100).toFixed(1) : 0) + "%";
-
-  let best = 0;
-  let mostUsed = 0;
-
-  for (let i = 1; i < 3; i++) {
-    if (scores[i].reduce((a,b) => a+b, 0) >
-        scores[best].reduce((a,b) => a+b, 0)) {
-      best = i;
-    }
-
-    if (attempts[i].reduce((a,b) => a+b, 0) >
-        attempts[mostUsed].reduce((a,b) => a+b, 0)) {
-      mostUsed = i;
-    }
-  }
-
-  document.getElementById("historyBest").textContent =
-    "Mejor estrategia: " + strategies[best];
-
-  document.getElementById("historyUsed").textContent =
-    "Estrategia más utilizada: " + strategies[mostUsed];
+    "IA reiniciada correctamente.";
 }
 
 // Elegir estrategia
@@ -240,9 +261,18 @@ function play() {
 
   epsilon = Math.max(0.05, epsilon * 0.999);
 
+  // Registrar evolución cada 100 partidas
+  if (games % 100 === 0) {
+    winHistory.push({
+      games: games,
+      rate: Number((wins / games * 100).toFixed(1))
+    });
+  }
+
   saveData();
   update();
   updateHistory();
+  updateChart();
 
   document.getElementById("result").innerHTML =
     (victory ? "🏆 Victoria simulada" : "💀 Derrota simulada") +
@@ -261,9 +291,6 @@ function trainMany() {
 
   document.getElementById("result").textContent =
     "🧠 100 partidas simuladas y aprendizaje actualizado";
-
-  update();
-  updateHistory();
 }
 
 // Actualizar estadísticas
@@ -273,7 +300,7 @@ function update() {
   document.getElementById("losses").textContent = losses;
 
   document.getElementById("rate").textContent =
-    games ? Math.round(wins / games * 100) + "%" : "0%";
+    games ? (wins / games * 100).toFixed(1) + "%" : "0%";
 
   let html = "";
 
@@ -293,9 +320,69 @@ function update() {
   document.getElementById("strategies").innerHTML = html;
 }
 
+// Actualizar historial
+function updateHistory() {
+  document.getElementById("historyGames").textContent =
+    "Partidas entrenadas: " + games;
+
+  document.getElementById("historyWinRate").textContent =
+    "Victorias: " +
+    (games ? (wins / games * 100).toFixed(1) : 0) + "%";
+
+  let best = 0;
+  let mostUsed = 0;
+
+  for (let i = 1; i < 3; i++) {
+    if (scores[i].reduce((a,b) => a+b, 0) >
+        scores[best].reduce((a,b) => a+b, 0)) {
+      best = i;
+    }
+
+    if (attempts[i].reduce((a,b) => a+b, 0) >
+        attempts[mostUsed].reduce((a,b) => a+b, 0)) {
+      mostUsed = i;
+    }
+  }
+
+  document.getElementById("historyBest").textContent =
+    "Mejor estrategia: " + strategies[best];
+
+  document.getElementById("historyUsed").textContent =
+    "Estrategia más utilizada: " + strategies[mostUsed];
+}
+
+// Dibujar gráfico
+function updateChart() {
+  const container = document.getElementById("winChart");
+
+  if (winHistory.length === 0) {
+    container.innerHTML =
+      "<p>Entrena 100 partidas para generar el gráfico.</p>";
+    return;
+  }
+
+  let html = "";
+
+  winHistory.forEach(point => {
+    const height = Math.max(3, point.rate);
+
+    html += `
+      <div class="chartColumn">
+        <div class="chartValue">${point.rate}%</div>
+        <div class="chartBar" style="height:${height}%"></div>
+        <div class="chartLabel">${point.games}</div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
 // Inicio
 update();
 updateHistory();
+updateChart();
+
 </script>
 </body>
 </html>
