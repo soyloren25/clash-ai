@@ -7,9 +7,11 @@
 <title>Clash AI - Entrenamiento</title>
 <style>
 body {
-  margin:0; padding:18px;
+  margin:0;
+  padding:18px;
   font-family:Arial,sans-serif;
-  background:#101827; color:white;
+  background:#101827;
+  color:white;
   text-align:center;
 }
 h1 {color:#ffd43b}
@@ -21,15 +23,21 @@ h1 {color:#ffd43b}
   max-width:450px;
 }
 button {
-  background:#f5b82e; color:#172033;
-  border:0; padding:14px 18px;
-  border-radius:10px; font-weight:bold;
-  font-size:16px; margin:6px;
+  background:#f5b82e;
+  color:#172033;
+  border:0;
+  padding:14px 18px;
+  border-radius:10px;
+  font-weight:bold;
+  font-size:16px;
+  margin:6px;
 }
 .stat {color:#ffd43b;font-weight:bold}
 .strategy {
-  background:#334155;padding:10px;
-  border-radius:8px;margin:8px 0;
+  background:#334155;
+  padding:10px;
+  border-radius:8px;
+  margin:8px 0;
 }
 .small {color:#cbd5e1;font-size:13px}
 </style>
@@ -53,16 +61,19 @@ button {
 <p>Victorias: <span class="stat" id="wins">0</span></p>
 <p>Derrotas: <span class="stat" id="losses">0</span></p>
 <p>Porcentaje de victorias: <span class="stat" id="rate">0%</span></p>
-  <div id="trainingHistory" style="background:#1e293b;padding:15px;margin:15px;border-radius:12px;">
-  <h3>📊 HISTORIAL DE ENTRENAMIENTO</h3>
-  <p id="historyGames">Partidas entrenadas: 0</p>
-  <p id="historyWinRate">Victorias: 0%</p>
-  <p id="historyBest">Mejor estrategia: pendiente</p>
-  <p id="historyUsed">Estrategia más utilizada: pendiente</p>
-  </div>
+
+<div id="trainingHistory" style="background:#1e293b;padding:15px;margin:15px;border-radius:12px;">
+<h3>📊 HISTORIAL DE ENTRENAMIENTO</h3>
+<p id="historyGames">Partidas entrenadas: 0</p>
+<p id="historyWinRate">Victorias: 0%</p>
+<p id="historyBest">Mejor estrategia: pendiente</p>
+<p id="historyUsed">Estrategia más utilizada: pendiente</p>
+</div>
+
 <button onclick="train()">ENTRENAR 1 PARTIDA</button>
 <button onclick="trainMany()">ENTRENAR 100 PARTIDAS</button>
-  <button onclick="resetAI()">REINICIAR IA</button>
+<button onclick="resetAI()">REINICIAR IA</button>
+
 <div id="result">Esperando entrenamiento...</div>
 </div>
 
@@ -85,60 +96,43 @@ const opponents = [
   "Mazo equilibrado"
 ];
 
-// Cargar aprendizaje guardado
-const savedData = JSON.parse(localStorage.getItem("clashAIData") || "null");
-
-let scores = savedData ? savedData.scores : [
-  [0,0,0],
-  [0,0,0],
-  [0,0,0]
+const matchup = [
+  [0.35,0.75,0.60],
+  [0.65,0.55,0.70],
+  [0.45,0.70,0.65]
 ];
-
-let attempts = savedData ? savedData.attempts : [
-  [0,0,0],
-  [0,0,0],
-  [0,0,0]
-];
-
-let games = savedData ? savedData.games : 200;
-let wins = savedData ? savedData.wins : 122;
-let losses = savedData ? savedData.losses : 78;
-let epsilon = savedData ? savedData.epsilon : 0.25;
 
 const learningRate = 0.25;
-  function updateHistory() {
-  document.getElementById("historyGames").textContent =
-    "Partidas entrenadas: " + games;
 
-  document.getElementById("historyWinRate").textContent =
-    "Victorias: " + (games ? (wins / games * 100).toFixed(1) : 0) + "%";
+function emptyMatrix() {
+  return [[0,0,0],[0,0,0],[0,0,0]];
+}
 
-  const strategies = [
-    "Sabueso + Globo",
-    "Defensa y contraataque",
-    "Presión con Globo"
-  ];
-
-  let best = 0;
-  let mostUsed = 0;
-
-  for (let i = 1; i < 3; i++) {
-    if (scores[i].reduce((a,b) => a+b, 0) >
-        scores[best].reduce((a,b) => a+b, 0)) best = i;
-
-    if (attempts[i].reduce((a,b) => a+b, 0) >
-        attempts[mostUsed].reduce((a,b) => a+b, 0)) mostUsed = i;
+// Cargar datos guardados
+function loadData() {
+  try {
+    const data = JSON.parse(localStorage.getItem("clashAIData"));
+    if (data && Array.isArray(data.scores) &&
+        Array.isArray(data.attempts)) {
+      return data;
+    }
+  } catch (error) {
+    console.log("No se pudieron cargar los datos guardados.");
   }
+  return null;
+}
 
-  document.getElementById("historyBest").textContent =
-    "Mejor estrategia: " + strategies[best];
+const savedData = loadData();
 
-  document.getElementById("historyUsed").textContent =
-    "Estrategia más utilizada: " + strategies[mostUsed];
-  }
+let scores = savedData ? savedData.scores : emptyMatrix();
+let attempts = savedData ? savedData.attempts : emptyMatrix();
+let games = savedData ? savedData.games : 0;
+let wins = savedData ? savedData.wins : 0;
+let losses = savedData ? savedData.losses : 0;
+let epsilon = savedData ? savedData.epsilon : 0.25;
+
+// Guardar aprendizaje
 function saveData() {
-  function resetAI() {
-  function saveData() {
   localStorage.setItem("clashAIData", JSON.stringify({
     scores,
     attempts,
@@ -149,51 +143,83 @@ function saveData() {
   }));
 }
 
+// Reiniciar completamente la IA
 function resetAI() {
-  if (!confirm("¿Seguro que quieres reiniciar todo el aprendizaje?")) return;
+  if (!confirm("¿Seguro que quieres reiniciar todo el aprendizaje?")) {
+    return;
+  }
 
-  scores = [[0,0,0],[0,0,0],[0,0,0]];
-  attempts = [[0,0,0],[0,0,0],[0,0,0]];
+  scores = emptyMatrix();
+  attempts = emptyMatrix();
   games = 0;
   wins = 0;
   losses = 0;
   epsilon = 0.25;
 
   saveData();
-  location.reload();
-}
-}
-// Ventaja inicial aproximada de cada estrategia
-const matchup = [
-  [0.35,0.75,0.60],
-  [0.65,0.55,0.70],
-  [0.45,0.70,0.65]
-];
+  update();
+  updateHistory();
 
-function chooseStrategy(opponent) {
-  // Exploración: probar estrategias nuevas
-  if (Math.random() < epsilon) {
-    return Math.floor(Math.random()*3);
+  document.getElementById("result").textContent =
+    "IA reiniciada correctamente. ¡Empieza de nuevo!";
+}
+
+// Historial
+function updateHistory() {
+  document.getElementById("historyGames").textContent =
+    "Partidas entrenadas: " + games;
+
+  document.getElementById("historyWinRate").textContent =
+    "Victorias: " +
+    (games ? (wins / games * 100).toFixed(1) : 0) + "%";
+
+  let best = 0;
+  let mostUsed = 0;
+
+  for (let i = 1; i < 3; i++) {
+    if (scores[i].reduce((a,b) => a+b, 0) >
+        scores[best].reduce((a,b) => a+b, 0)) {
+      best = i;
+    }
+
+    if (attempts[i].reduce((a,b) => a+b, 0) >
+        attempts[mostUsed].reduce((a,b) => a+b, 0)) {
+      mostUsed = i;
+    }
   }
 
-  // Explotación: elegir la mejor estrategia aprendida
+  document.getElementById("historyBest").textContent =
+    "Mejor estrategia: " + strategies[best];
+
+  document.getElementById("historyUsed").textContent =
+    "Estrategia más utilizada: " + strategies[mostUsed];
+}
+
+// Elegir estrategia
+function chooseStrategy(opponent) {
+  if (Math.random() < epsilon) {
+    return Math.floor(Math.random() * 3);
+  }
+
   let best = 0;
-  for(let i=1;i<3;i++) {
-    if(scores[opponent][i] > scores[opponent][best]) {
+
+  for (let i = 1; i < 3; i++) {
+    if (scores[opponent][i] > scores[opponent][best]) {
       best = i;
     }
   }
+
   return best;
 }
 
+// Simular partida
 function play() {
-  const opponent = Math.floor(Math.random()*3);
+  const opponent = Math.floor(Math.random() * 3);
   const strategy = chooseStrategy(opponent);
 
-  // Resultado de una batalla ficticia
-  const probability = Math.max(0.05,Math.min(0.95,
+  const probability = Math.max(0.05, Math.min(0.95,
     matchup[opponent][strategy] +
-    (Math.random()-0.5)*0.30
+    (Math.random() - 0.5) * 0.30
   ));
 
   const victory = Math.random() < probability;
@@ -201,23 +227,27 @@ function play() {
 
   attempts[opponent][strategy]++;
 
-  // Aprendizaje: actualiza la puntuación de la estrategia
   scores[opponent][strategy] += learningRate *
     (reward - scores[opponent][strategy]);
 
   games++;
-  if(victory) wins++;
-  else losses++;
 
-  epsilon = Math.max(0.05,epsilon*0.999);
-saveData();
+  if (victory) {
+    wins++;
+  } else {
+    losses++;
+  }
+
+  epsilon = Math.max(0.05, epsilon * 0.999);
+
+  saveData();
+  update();
   updateHistory();
+
   document.getElementById("result").innerHTML =
     (victory ? "🏆 Victoria simulada" : "💀 Derrota simulada") +
     "<br>Rival: " + opponents[opponent] +
     "<br>Estrategia: " + strategies[strategy];
-  
-  update();
 }
 
 function train() {
@@ -225,36 +255,47 @@ function train() {
 }
 
 function trainMany() {
-  for(let i=0;i<100;i++) {
+  for (let i = 0; i < 100; i++) {
     play();
   }
-  document.getElementById("result").innerHTML =
+
+  document.getElementById("result").textContent =
     "🧠 100 partidas simuladas y aprendizaje actualizado";
+
   update();
+  updateHistory();
 }
 
+// Actualizar estadísticas
 function update() {
-  document.getElementById("games").textContent=games;
-  document.getElementById("wins").textContent=wins;
-  document.getElementById("losses").textContent=losses;
-  document.getElementById("rate").textContent=
-    games ? Math.round(wins/games*100)+"%" : "0%";
+  document.getElementById("games").textContent = games;
+  document.getElementById("wins").textContent = wins;
+  document.getElementById("losses").textContent = losses;
 
-  let html="";
-  for(let i=0;i<3;i++) {
-    html+="<h3>"+opponents[i]+"</h3>";
-    for(let j=0;j<3;j++) {
-      html+="<div class='strategy'>"+
-        strategies[j]+"<br>Puntuación aprendida: "+
-        scores[i][j].toFixed(2)+
-        " · Pruebas: "+attempts[i][j]+"</div>";
+  document.getElementById("rate").textContent =
+    games ? Math.round(wins / games * 100) + "%" : "0%";
+
+  let html = "";
+
+  for (let i = 0; i < 3; i++) {
+    html += "<h3>" + opponents[i] + "</h3>";
+
+    for (let j = 0; j < 3; j++) {
+      html += "<div class='strategy'>" +
+        strategies[j] +
+        "<br>Puntuación aprendida: " +
+        scores[i][j].toFixed(2) +
+        " · Pruebas: " + attempts[i][j] +
+        "</div>";
     }
   }
-  document.getElementById("strategies").innerHTML=html;
+
+  document.getElementById("strategies").innerHTML = html;
 }
 
+// Inicio
 update();
-  updateHistory();
+updateHistory();
 </script>
 </body>
 </html>
