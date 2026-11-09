@@ -106,6 +106,36 @@ let losses = savedData ? savedData.losses : 78;
 let epsilon = savedData ? savedData.epsilon : 0.25;
 
 const learningRate = 0.25;
+  function updateHistory() {
+  document.getElementById("historyGames").textContent =
+    "Partidas entrenadas: " + games;
+
+  document.getElementById("historyWinRate").textContent =
+    "Victorias: " + (games ? (wins / games * 100).toFixed(1) : 0) + "%";
+
+  const strategies = [
+    "Sabueso + Globo",
+    "Defensa y contraataque",
+    "Presión con Globo"
+  ];
+
+  let best = 0;
+  let mostUsed = 0;
+
+  for (let i = 1; i < 3; i++) {
+    if (scores[i].reduce((a,b) => a+b, 0) >
+        scores[best].reduce((a,b) => a+b, 0)) best = i;
+
+    if (attempts[i].reduce((a,b) => a+b, 0) >
+        attempts[mostUsed].reduce((a,b) => a+b, 0)) mostUsed = i;
+  }
+
+  document.getElementById("historyBest").textContent =
+    "Mejor estrategia: " + strategies[best];
+
+  document.getElementById("historyUsed").textContent =
+    "Estrategia más utilizada: " + strategies[mostUsed];
+  }
 function saveData() {
   function resetAI() {
   if (!confirm("¿Seguro que quieres reiniciar todo el aprendizaje?")) return;
