@@ -4,29 +4,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clash AI - Entrenamiento</title>
+<title>Clash AI PRO</title>
 <style>
-body{margin:0;padding:18px;font-family:Arial,sans-serif;background:#101827;color:white;text-align:center}
-h1{color:#ffd43b}
-.card{background:#1e293b;padding:18px;border-radius:15px;margin:15px auto;max-width:450px}
-button{background:#f5b82e;color:#172033;border:0;padding:14px 18px;border-radius:10px;font-weight:bold;font-size:15px;margin:6px}
+*{box-sizing:border-box}
+body{
+ margin:0;padding:15px;font-family:Arial,sans-serif;
+ background:#101827;color:white;text-align:center
+}
+h1{color:#ffd43b;margin-bottom:5px}
+h2{color:#ffd43b;font-size:20px}
+.card{
+ background:#1e293b;padding:17px;border-radius:15px;
+ margin:14px auto;max-width:520px;
+ border:1px solid #334155
+}
+button{
+ background:#f5b82e;color:#172033;border:0;
+ padding:13px 15px;border-radius:10px;
+ font-weight:bold;font-size:14px;margin:5px;
+ cursor:pointer
+}
+button:disabled{opacity:.5}
+.secondary{background:#475569;color:white}
+.danger{background:#b91c1c;color:white}
 .stat{color:#ffd43b;font-weight:bold}
-.strategy{background:#334155;padding:10px;border-radius:8px;margin:8px 0}
-.small{color:#cbd5e1;font-size:13px}
-#winChart{display:flex;align-items:flex-end;justify-content:center;gap:8px;height:180px;padding:15px 5px 5px;overflow-x:auto}
-.chartColumn{min-width:45px;flex:1;max-width:65px;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
-.chartBar{background:#f5b82e;border-radius:6px 6px 0 0;min-height:3px;width:100%}
+.small{font-size:12px;color:#cbd5e1}
+.strategy{
+ background:#334155;padding:11px;border-radius:9px;
+ margin:8px 0;text-align:left
+}
+.statsGrid{
+ display:grid;grid-template-columns:1fr 1fr;gap:9px
+}
+.statBox{
+ background:#334155;padding:12px;border-radius:10px
+}
+.statBox strong{display:block;color:#ffd43b;font-size:21px;margin-top:5px}
+#winChart{
+ display:flex;align-items:flex-end;justify-content:flex-start;
+ gap:10px;height:205px;padding:15px 5px 5px;
+ overflow-x:auto
+}
+.chartColumn{
+ min-width:55px;max-width:75px;flex:1;
+ height:100%;display:flex;flex-direction:column;
+ justify-content:flex-end
+}
+.chartBar{
+ width:100%;background:#f5b82e;
+ border-radius:6px 6px 0 0;min-height:3px
+}
+.chartValue{font-size:11px;color:#ffd43b;margin-bottom:5px}
 .chartLabel{font-size:10px;color:#cbd5e1;margin-top:5px}
-.chartValue{font-size:10px;color:#ffd43b;margin-bottom:4px}
+.progressOuter{
+ background:#334155;border-radius:20px;height:14px;
+ overflow:hidden;margin:12px 0
+}
+#progressBar{
+ height:100%;width:0%;background:#f5b82e;
+ transition:width .15s
+}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:9px 4px;border-bottom:1px solid #475569}
+th{color:#ffd43b}
+#result{margin-top:12px;line-height:1.6}
 </style>
 </head>
 <body>
 
-<h1>🤖 CLASH AI</h1>
-<p>IA de entrenamiento para tu mazo</p>
+<h1>🤖 CLASH AI PRO</h1>
+<p class="small">Simulador de entrenamiento y aprendizaje</p>
 
 <div class="card">
-<h2>🐉 Tu mazo</h2>
+<h2>🐉 TU MAZO</h2>
 <p>Dragón infernal · Valquiria</p>
 <p>Globo · Descarga</p>
 <p>Dragones esqueleto · Bola de fuego</p>
@@ -34,230 +84,395 @@ button{background:#f5b82e;color:#172033;border:0;padding:14px 18px;border-radius
 </div>
 
 <div class="card">
-<h2>🧠 Entrenamiento</h2>
-<p>Partidas: <span class="stat" id="games">0</span></p>
-<p>Victorias: <span class="stat" id="wins">0</span></p>
-<p>Derrotas: <span class="stat" id="losses">0</span></p>
-<p>Porcentaje de victorias: <span class="stat" id="rate">0%</span></p>
-
-<div id="trainingHistory">
-<h3>📊 HISTORIAL DE ENTRENAMIENTO</h3>
-<p id="historyGames">Partidas entrenadas: 0</p>
-<p id="historyWinRate">Victorias: 0%</p>
+<h2>📊 ESTADÍSTICAS GENERALES</h2>
+<div class="statsGrid">
+ <div class="statBox">Partidas<strong id="games">0</strong></div>
+ <div class="statBox">Victorias<strong id="wins">0</strong></div>
+ <div class="statBox">Derrotas<strong id="losses">0</strong></div>
+ <div class="statBox">Victorias<strong id="rate">0%</strong></div>
+</div>
 <p id="historyBest">Mejor estrategia: pendiente</p>
-<p id="historyUsed">Estrategia más utilizada: pendiente</p>
+<p id="historyUsed">Más utilizada: pendiente</p>
 </div>
 
-<button onclick="train()">ENTRENAR 1 PARTIDA</button>
-<button onclick="trainMany()">ENTRENAR 100 PARTIDAS</button>
-<button onclick="resetAI()">REINICIAR IA</button>
-<div id="result">Esperando entrenamiento...</div>
+<div class="card">
+<h2>🧠 ENTRENAMIENTO</h2>
+<button onclick="train(1)">1 PARTIDA</button>
+<button onclick="train(100)">100 PARTIDAS</button>
+<button onclick="train(500)">500 PARTIDAS</button>
+<button onclick="train(1000)">1.000 PARTIDAS</button>
+
+<div class="progressOuter">
+<div id="progressBar"></div>
+</div>
+<p id="progressText" class="small">Esperando entrenamiento...</p>
+<div id="result">Listo para entrenar.</div>
+<button class="danger" onclick="resetAI()">REINICIAR IA</button>
 </div>
 
 <div class="card">
 <h2>📈 EVOLUCIÓN DE LA IA</h2>
-<p class="small">Porcentaje de victorias registrado cada 100 partidas</p>
-<div id="winChart">
-<p>Preparando gráfico...</p>
-</div>
+<p class="small">Porcentaje acumulado de victorias en cada hito de 100 partidas</p>
+<div id="winChart"></div>
+<p id="chartInfo" class="small"></p>
 </div>
 
 <div class="card">
-<h2>📚 Estrategias aprendidas</h2>
+<h2>🎯 ESTRATEGIAS APRENDIDAS</h2>
 <div id="strategies"></div>
-<p class="small">La IA ajusta sus puntuaciones según los resultados de las simulaciones.</p>
 </div>
 
+<div class="card">
+<h2>⚔️ RESULTADOS POR RIVAL</h2>
+<div id="opponentStats"></div>
+</div>
+
+<div class="card">
+<h2>💾 DATOS Y GUARDADO</h2>
+<p id="saveStatus" class="small">Guardado automático activado</p>
+<p class="small">Los datos se guardan en el almacenamiento local de este navegador.</p>
+<button class="secondary" onclick="exportData()">EXPORTAR DATOS</button>
+<button class="secondary" onclick="importData()">IMPORTAR DATOS</button>
+<input type="file" id="importFile" accept=".json" hidden>
+</div>
+
+<p class="small">
+Clash AI PRO es un simulador educativo. Sus resultados son simulados y no representan partidas reales de Clash Royale.
+</p>
+
 <script>
-const strategies=["Sabueso + Globo","Defensa y contraataque","Presión con Globo"];
-const opponents=["Mucho antiaéreo","Mazo terrestre","Mazo equilibrado"];
-const matchup=[
-[0.35,0.75,0.60],
-[0.65,0.55,0.70],
-[0.45,0.70,0.65]
+const strategies=[
+ "Sabueso + Globo",
+ "Defensa y contraataque",
+ "Presión con Globo"
 ];
+
+const opponents=[
+ "Mucho antiaéreo",
+ "Mazo terrestre",
+ "Mazo equilibrado"
+];
+
+const matchup=[
+ [0.35,0.75,0.60],
+ [0.65,0.55,0.70],
+ [0.45,0.70,0.65]
+];
+
 const learningRate=0.25;
 
-function emptyMatrix(){
-return [[0,0,0],[0,0,0],[0,0,0]];
+function matrix(){
+ return [[0,0,0],[0,0,0],[0,0,0]];
 }
 
 function loadData(){
-try{
-const data=JSON.parse(localStorage.getItem("clashAIData"));
-if(data&&Array.isArray(data.scores)&&Array.isArray(data.attempts))return data;
-}catch(error){
-console.log("No se pudieron cargar los datos.");
+ try{
+  const d=JSON.parse(localStorage.getItem("clashAIData"));
+  if(d && Array.isArray(d.scores) && Array.isArray(d.attempts)){
+   return d;
+  }
+ }catch(e){}
+ return null;
 }
-return null;
-}
 
-const savedData=loadData();
-let scores=savedData?savedData.scores:emptyMatrix();
-let attempts=savedData?savedData.attempts:emptyMatrix();
-let games=savedData?savedData.games:0;
-let wins=savedData?savedData.wins:0;
-let losses=savedData?savedData.losses:0;
-let epsilon=savedData?savedData.epsilon:0.25;
+const saved=loadData();
 
-let winHistory=savedData&&Array.isArray(savedData.winHistory)
-?savedData.winHistory:[];
+let scores=saved?saved.scores:matrix();
+let attempts=saved?saved.attempts:matrix();
+let games=saved?Number(saved.games)||0:0;
+let wins=saved?Number(saved.wins)||0:0;
+let losses=saved?Number(saved.losses)||0:0;
+let epsilon=saved?Number(saved.epsilon)||0.25:0.25;
+let winHistory=saved&&Array.isArray(saved.winHistory)
+ ? saved.winHistory : [];
 
-// Recuperar el resultado actual si todavía no hay historial
-if(winHistory.length===0&&games>0){
-winHistory.push({
-games:games,
-rate:Number((wins/games*100).toFixed(1))
-});
+let opponentGames=saved&&Array.isArray(saved.opponentGames)
+ ? saved.opponentGames : [0,0,0];
+
+let opponentWins=saved&&Array.isArray(saved.opponentWins)
+ ? saved.opponentWins : [0,0,0];
+
+let training=false;
+
+// Recuperar un punto de referencia si el historial antiguo no existía.
+if(winHistory.length===0 && games>0){
+ winHistory.push({
+  games:games,
+  rate:Number((wins/games*100).toFixed(1))
+ });
 }
 
 function saveData(){
-localStorage.setItem("clashAIData",JSON.stringify({
-scores,attempts,games,wins,losses,epsilon,winHistory
-}));
-}
-
-function resetAI(){
-if(!confirm("¿Seguro que quieres reiniciar todo el aprendizaje?"))return;
-scores=emptyMatrix();
-attempts=emptyMatrix();
-games=0;
-wins=0;
-losses=0;
-epsilon=0.25;
-winHistory=[];
-saveData();
-update();
-updateHistory();
-updateChart();
-document.getElementById("result").textContent="IA reiniciada correctamente.";
+ const data={
+  scores,attempts,games,wins,losses,epsilon,
+  winHistory,opponentGames,opponentWins
+ };
+ try{
+  localStorage.setItem("clashAIData",JSON.stringify(data));
+  document.getElementById("saveStatus").textContent=
+   "✅ Datos guardados automáticamente";
+ }catch(e){
+  document.getElementById("saveStatus").textContent=
+   "⚠️ No se pudieron guardar los datos";
+ }
 }
 
 function chooseStrategy(opponent){
-if(Math.random()<epsilon)return Math.floor(Math.random()*3);
-let best=0;
-for(let i=1;i<3;i++){
-if(scores[opponent][i]>scores[opponent][best])best=i;
-}
-return best;
-}
-
-function play(){
-const opponent=Math.floor(Math.random()*3);
-const strategy=chooseStrategy(opponent);
-const probability=Math.max(0.05,Math.min(0.95,
-matchup[opponent][strategy]+(Math.random()-0.5)*0.30
-));
-const victory=Math.random()<probability;
-const reward=victory?1:-1;
-
-attempts[opponent][strategy]++;
-scores[opponent][strategy]+=learningRate*(reward-scores[opponent][strategy]);
-games++;
-
-if(victory)wins++;
-else losses++;
-
-epsilon=Math.max(0.05,epsilon*0.999);
-
-if(games%100===0){
-winHistory.push({
-games:games,
-rate:Number((wins/games*100).toFixed(1))
-});
+ if(Math.random()<epsilon){
+  return Math.floor(Math.random()*3);
+ }
+ let best=0;
+ for(let j=1;j<3;j++){
+  if(scores[opponent][j]>scores[opponent][best]){
+   best=j;
+  }
+ }
+ return best;
 }
 
-saveData();
-update();
-updateHistory();
-updateChart();
+function simulateOne(){
+ const opponent=Math.floor(Math.random()*3);
+ const strategy=chooseStrategy(opponent);
 
-document.getElementById("result").innerHTML=
-(victory?"🏆 Victoria simulada":"💀 Derrota simulada")+
-"<br>Rival: "+opponents[opponent]+
-"<br>Estrategia: "+strategies[strategy];
+ const probability=Math.max(0.05,Math.min(0.95,
+  matchup[opponent][strategy]+(Math.random()-0.5)*0.30
+ ));
+
+ const victory=Math.random()<probability;
+ const reward=victory?1:-1;
+
+ attempts[opponent][strategy]++;
+ scores[opponent][strategy]+=
+  learningRate*(reward-scores[opponent][strategy]);
+
+ games++;
+ opponentGames[opponent]++;
+
+ if(victory){
+  wins++;
+  opponentWins[opponent]++;
+ }else{
+  losses++;
+ }
+
+ epsilon=Math.max(0.05,epsilon*0.999);
+
+ if(games%100===0){
+  winHistory.push({
+   games:games,
+   rate:Number((wins/games*100).toFixed(1))
+  });
+ }
 }
 
-function train(){play();}
+function train(amount){
+ if(training)return;
+ training=true;
 
-function trainMany(){
-for(let i=0;i<100;i++)play();
-document.getElementById("result").textContent=
-"🧠 100 partidas simuladas y aprendizaje actualizado";
+ const buttons=document.querySelectorAll("button");
+ buttons.forEach(b=>b.disabled=true);
+
+ let done=0;
+ document.getElementById("result").textContent=
+  "🧠 Entrenamiento en curso...";
+
+ function batch(){
+  const limit=Math.min(done+100,amount);
+  while(done<limit){
+   simulateOne();
+   done++;
+  }
+
+  const percent=Math.round(done/amount*100);
+  document.getElementById("progressBar").style.width=
+   percent+"%";
+  document.getElementById("progressText").textContent=
+   "Entrenamiento: "+done+" / "+amount+" ("+percent+"%)";
+
+  saveData();
+  updateAll();
+
+  if(done<amount){
+   setTimeout(batch,20);
+  }else{
+   training=false;
+   buttons.forEach(b=>b.disabled=false);
+   document.getElementById("result").innerHTML=
+    "🏁 Entrenamiento terminado.<br>"+
+    amount+" partidas simuladas.";
+  }
+ }
+
+ batch();
 }
 
-function update(){
-document.getElementById("games").textContent=games;
-document.getElementById("wins").textContent=wins;
-document.getElementById("losses").textContent=losses;
-document.getElementById("rate").textContent=
-games?(wins/games*100).toFixed(1)+"%":"0%";
+function resetAI(){
+ if(training)return;
+ if(!confirm("¿Quieres borrar todo el aprendizaje y empezar desde cero?"))return;
 
-let html="";
-for(let i=0;i<3;i++){
-html+="<h3>"+opponents[i]+"</h3>";
-for(let j=0;j<3;j++){
-html+="<div class='strategy'>"+strategies[j]+
-"<br>Puntuación aprendida: "+scores[i][j].toFixed(2)+
-" · Pruebas: "+attempts[i][j]+"</div>";
-}
-}
-document.getElementById("strategies").innerHTML=html;
-}
+ scores=matrix();
+ attempts=matrix();
+ games=0;
+ wins=0;
+ losses=0;
+ epsilon=0.25;
+ winHistory=[];
+ opponentGames=[0,0,0];
+ opponentWins=[0,0,0];
 
-function updateHistory(){
-document.getElementById("historyGames").textContent="Partidas entrenadas: "+games;
-document.getElementById("historyWinRate").textContent=
-"Victorias: "+(games?(wins/games*100).toFixed(1):0)+"%";
-
-let totals=[0,0,0];
-let uses=[0,0,0];
-
-for(let i=0;i<3;i++){
-for(let j=0;j<3;j++){
-totals[j]+=scores[i][j];
-uses[j]+=attempts[i][j];
-}
+ saveData();
+ updateAll();
+ document.getElementById("result").textContent=
+  "IA reiniciada correctamente.";
+ document.getElementById("progressBar").style.width="0%";
+ document.getElementById("progressText").textContent=
+  "Esperando entrenamiento...";
 }
 
-let best=0;
-let mostUsed=0;
-for(let j=1;j<3;j++){
-if(totals[j]>totals[best])best=j;
-if(uses[j]>uses[mostUsed])mostUsed=j;
+function updateStats(){
+ document.getElementById("games").textContent=games;
+ document.getElementById("wins").textContent=wins;
+ document.getElementById("losses").textContent=losses;
+ document.getElementById("rate").textContent=
+  (games?(wins/games*100).toFixed(1):0)+"%";
 }
 
-document.getElementById("historyBest").textContent=
-"Mejor estrategia: "+strategies[best];
-document.getElementById("historyUsed").textContent=
-"Estrategia más utilizada: "+strategies[mostUsed];
+function updateStrategies(){
+ let totals=[0,0,0];
+ let uses=[0,0,0];
+ let counts=[0,0,0];
+
+ for(let i=0;i<3;i++){
+  for(let j=0;j<3;j++){
+   totals[j]+=scores[i][j];
+   uses[j]+=attempts[i][j];
+   counts[j]++;
+  }
+ }
+
+ const averages=totals.map((v,j)=>counts[j]?v/counts[j]:0);
+ let best=0,most=0;
+
+ for(let j=1;j<3;j++){
+  if(averages[j]>averages[best])best=j;
+  if(uses[j]>uses[most])most=j;
+ }
+
+ document.getElementById("historyBest").textContent=
+  "Mejor puntuación media: "+strategies[best];
+
+ document.getElementById("historyUsed").textContent=
+  "Estrategia más utilizada: "+strategies[most];
+
+ let html="";
+ for(let j=0;j<3;j++){
+  html+="<div class='strategy'><strong>"+
+   strategies[j]+"</strong><br>"+
+   "Puntuación media: "+averages[j].toFixed(2)+
+   "<br>Pruebas realizadas: "+uses[j]+"</div>";
+ }
+ document.getElementById("strategies").innerHTML=html;
 }
 
 function updateChart(){
-const container=document.getElementById("winChart");
+ const chart=document.getElementById("winChart");
 
-if(winHistory.length===0){
-container.innerHTML="<p>Entrena 100 partidas para generar el gráfico.</p>";
-return;
+ if(winHistory.length===0){
+  chart.innerHTML="<p class='small'>Entrena para generar el gráfico.</p>";
+  document.getElementById("chartInfo").textContent="";
+  return;
+ }
+
+ let html="";
+ winHistory.forEach(point=>{
+  const height=Math.max(3,Math.min(100,point.rate));
+  html+=`
+   <div class="chartColumn">
+    <div class="chartValue">${point.rate}%</div>
+    <div class="chartBar" style="height:${height}%"></div>
+    <div class="chartLabel">${point.games}</div>
+   </div>`;
+ });
+
+ chart.innerHTML=html;
+ document.getElementById("chartInfo").textContent=
+  "Registros disponibles: "+winHistory.length+
+  " · Último registro: "+winHistory[winHistory.length-1].games+
+  " partidas";
 }
 
-let html="";
-winHistory.forEach(point=>{
-const height=Math.max(3,point.rate);
-html+=`
-<div class="chartColumn">
-<div class="chartValue">${point.rate}%</div>
-<div class="chartBar" style="height:${height}%"></div>
-<div class="chartLabel">${point.games} partidas</div>
-</div>`;
+function updateOpponents(){
+ let html="<table><tr><th>Rival</th><th>Partidas</th><th>Victorias</th><th>%</th></tr>";
+
+ for(let i=0;i<3;i++){
+  const rate=opponentGames[i]
+   ?(opponentWins[i]/opponentGames[i]*100).toFixed(1):"0.0";
+
+  html+="<tr><td>"+opponents[i]+"</td>"+
+   "<td>"+opponentGames[i]+"</td>"+
+   "<td>"+opponentWins[i]+"</td>"+
+   "<td>"+rate+"%</td></tr>";
+ }
+
+ html+="</table>";
+ document.getElementById("opponentStats").innerHTML=html;
+}
+
+function updateAll(){
+ updateStats();
+ updateStrategies();
+ updateChart();
+ updateOpponents();
+}
+
+function exportData(){
+ const data=localStorage.getItem("clashAIData");
+ if(!data){
+  alert("No hay datos para exportar.");
+  return;
+ }
+
+ const blob=new Blob([data],{type:"application/json"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download="clash-ai-respaldo.json";
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+function importData(){
+ document.getElementById("importFile").click();
+}
+
+document.getElementById("importFile").addEventListener("change",function(e){
+ const file=e.target.files[0];
+ if(!file)return;
+
+ const reader=new FileReader();
+ reader.onload=function(){
+  try{
+   const data=JSON.parse(reader.result);
+   if(!Array.isArray(data.scores)||!Array.isArray(data.attempts)||
+      !Number.isFinite(Number(data.games))||
+      !Number.isFinite(Number(data.wins))||
+      !Number.isFinite(Number(data.losses))){
+    throw new Error("Datos incorrectos");
+   }
+
+   if(!confirm("¿Quieres sustituir los datos actuales por el respaldo?"))return;
+
+   localStorage.setItem("clashAIData",JSON.stringify(data));
+   location.reload();
+  }catch(err){
+   alert("El archivo no es un respaldo válido de Clash AI.");
+  }
+ };
+ reader.readAsText(file);
 });
-container.innerHTML=html;
-}
 
 saveData();
-update();
-updateHistory();
-updateChart();
+updateAll();
 </script>
 </body>
 </html>
