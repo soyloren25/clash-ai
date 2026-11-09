@@ -1,548 +1,215 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clash AI PRO</title>
+<title>Clash AI PRO v2.0</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;padding:15px;font-family:Arial,sans-serif;background:#101827;color:white;text-align:center}
-h1{color:#ffd43b;margin-bottom:5px}
-h2{color:#ffd43b;font-size:20px}
-.card{background:#1e293b;padding:17px;border-radius:15px;margin:14px auto;max-width:520px;border:1px solid #334155}
-button{background:#f5b82e;color:#172033;border:0;padding:13px 15px;border-radius:10px;font-weight:bold;font-size:14px;margin:5px;cursor:pointer}
-button:disabled{opacity:.5}
-.secondary{background:#475569;color:white}
-.danger{background:#b91c1c;color:white}
-.small{font-size:12px;color:#cbd5e1}
-.statsGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.statBox{background:#334155;padding:12px;border-radius:10px}
-.statBox strong{display:block;color:#ffd43b;font-size:21px;margin-top:5px}
-.strategy{background:#334155;padding:11px;border-radius:9px;margin:8px 0;text-align:left}
-.progressOuter{background:#334155;border-radius:20px;height:14px;overflow:hidden;margin:12px 0}
-#progressBar{height:100%;width:0%;background:#f5b82e;transition:width .15s}
-.chart{display:flex;align-items:flex-end;justify-content:flex-start;gap:10px;height:205px;padding:15px 5px 5px;overflow-x:auto}
-.chartColumn{min-width:58px;max-width:75px;flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end}
-.chartBar{width:100%;background:#f5b82e;border-radius:6px 6px 0 0;min-height:3px}
-.chartValue{font-size:11px;color:#ffd43b;margin-bottom:5px}
-.chartLabel{font-size:10px;color:#cbd5e1;margin-top:5px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-td,th{padding:9px 4px;border-bottom:1px solid #475569}
-th{color:#ffd43b}
-#result{margin-top:12px;line-height:1.6}
+*{box-sizing:border-box}body{margin:0;padding:16px;font-family:Arial,sans-serif;background:#101827;color:#f4f7fb}
+main{max-width:900px;margin:auto}h1{margin:4px 0 6px;color:#ffd166}h2{font-size:18px;margin:0 0 12px}
+p,.muted{color:#b9c5d6}.panel{background:#1b293b;border:1px solid #34465e;border-radius:13px;padding:15px;margin:13px 0}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:#26384f;padding:12px;border-radius:10px}.num{font-size:25px;font-weight:bold;color:#fff}
+button{border:0;border-radius:9px;padding:12px 14px;margin:4px 3px 4px 0;font-weight:bold;background:#ffd166;color:#172033}
+button.secondary{background:#40536c;color:white}button.danger{background:#a83b4b;color:white}
+.progress{height:13px;background:#34465e;border-radius:20px;overflow:hidden}.bar{height:100%;width:0;background:#42d392}
+canvas{width:100%;height:210px;background:#142033;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px 5px;border-bottom:1px solid #3b4b60;text-align:left}
+.good{color:#42d392}.bad{color:#ff8585}.warn{color:#ffd166}
+.small{font-size:12px}.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#34465e;margin:3px}
+input[type=file]{max-width:100%}
+@media(min-width:600px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
 </head>
 <body>
-
-<h1>🤖 CLASH AI PRO</h1>
-<p class="small">Simulador avanzado de entrenamiento y aprendizaje</p>
-
-<div class="card">
-<h2>🐉 TU MAZO</h2>
-<p>Dragón infernal · Valquiria</p>
-<p>Globo · Descarga</p>
-<p>Dragones esqueleto · Bola de fuego</p>
-<p>Sabueso de lava · Guardias</p>
+<main>
+<h1>🐉 Clash AI PRO v2.0</h1>
+<p>Simulador de entrenamiento y análisis de estrategias.</p>
+<div class="panel">
+<h2>📊 Entrenamiento</h2>
+<div class="stats">
+<div class="stat">Partidas<div class="num" id="games">0</div></div>
+<div class="stat">Victorias<div class="num" id="wins">0</div></div>
+<div class="stat">Derrotas<div class="num" id="losses">0</div></div>
+<div class="stat">Victorias<div class="num" id="rate">0%</div></div>
 </div>
-
-<div class="card">
-<h2>📊 ESTADÍSTICAS GENERALES</h2>
-<div class="statsGrid">
-<div class="statBox">Partidas<strong id="games">0</strong></div>
-<div class="statBox">Victorias<strong id="wins">0</strong></div>
-<div class="statBox">Derrotas<strong id="losses">0</strong></div>
-<div class="statBox">Victorias<strong id="rate">0%</strong></div>
+<p id="lastStatus">Preparado para entrenar.</p>
+<div class="progress"><div class="bar" id="progress"></div></div>
+<p class="small" id="progressText">0 partidas registradas</p>
+<button onclick="train(1)">Entrenar 1</button>
+<button onclick="train(100)">Entrenar 100</button>
+<button onclick="train(500)">Entrenar 500</button>
+<button onclick="train(1000)">Entrenar 1000</button>
 </div>
-<p id="historyBest">Mejor estrategia: pendiente</p>
-<p id="historyUsed">Más utilizada: pendiente</p>
-<p id="epsilonInfo" class="small"></p>
+<div class="panel">
+<h2>🧠 Aprendizaje por rival</h2>
+<div id="rivalLearning"></div>
 </div>
-
-<div class="card">
-<h2>🧠 ENTRENAMIENTO</h2>
-<button onclick="train(1)">1 PARTIDA</button>
-<button onclick="train(100)">100 PARTIDAS</button>
-<button onclick="train(500)">500 PARTIDAS</button>
-<button onclick="train(1000)">1.000 PARTIDAS</button>
-<div class="progressOuter"><div id="progressBar"></div></div>
-<p id="progressText" class="small">Esperando entrenamiento...</p>
-<div id="result">Listo para entrenar.</div>
-<button class="danger" onclick="resetAI()">REINICIAR IA</button>
+<div class="panel">
+<h2>📈 Evolución de victorias</h2>
+<canvas id="winChart" width="850" height="210"></canvas>
+<p class="small muted">Se guarda un punto cada 100 partidas nuevas.</p>
 </div>
-
-<div class="card">
-<h2>📈 EVOLUCIÓN DE VICTORIAS</h2>
-<p class="small">Porcentaje acumulado cada 100 partidas</p>
-<div id="winChart" class="chart"></div>
-<p id="chartInfo" class="small"></p>
+<div class="panel">
+<h2>🎯 Estrategias</h2>
+<div id="strategyStats"></div>
 </div>
-
-<div class="card">
-<h2>🧠 EVOLUCIÓN DE ESTRATEGIAS</h2>
-<p class="small">Puntuación media de cada estrategia en los hitos de entrenamiento</p>
-<div id="strategyChart" class="chart"></div>
-<p id="strategyChartInfo" class="small"></p>
+<div class="panel">
+<h2>🔎 Análisis reciente</h2>
+<div id="recentAnalysis"></div>
 </div>
-
-<div class="card">
-<h2>🎯 ESTRATEGIAS APRENDIDAS</h2>
-<div id="strategies"></div>
-</div>
-
-<div class="card">
-<h2>⚔️ RESULTADOS POR RIVAL</h2>
+<div class="panel">
+<h2>⚔️ Resultados por rival</h2>
 <div id="opponentStats"></div>
 </div>
-
-<div class="card">
-<h2>💾 DATOS Y GUARDADO</h2>
-<p id="saveStatus" class="small">Guardado automático activado</p>
-<p class="small">Los datos se guardan en este navegador.</p>
-<button class="secondary" onclick="exportData()">EXPORTAR DATOS</button>
-<button class="secondary" onclick="importData()">IMPORTAR DATOS</button>
-<input type="file" id="importFile" accept=".json" hidden>
+<div class="panel">
+<h2>💾 Copia de seguridad</h2>
+<button class="secondary" onclick="exportData()">Exportar copia</button>
+<label class="pill">Importar copia <input type="file" id="importFile" accept=".json,application/json" onchange="importData(event)"></label>
+<button class="danger" onclick="resetAI()">Reiniciar IA</button>
+<p class="small muted">No reinicies si quieres conservar tus estadísticas.</p>
 </div>
-
-<p class="small">Clash AI PRO es un simulador educativo. Los resultados son sintéticos y no representan partidas reales de Clash Royale.</p>
-
+<div class="panel small muted">
+<strong>Importante:</strong> este es un simulador con probabilidades artificiales. Sus porcentajes no representan resultados reales de Clash Royale ni se conecta al juego.
+</div>
+</main>
 <script>
-const strategies=[
- "Sabueso + Globo",
- "Defensa y contraataque",
- "Presión con Globo"
-];
-
-const opponents=[
- "Mucho antiaéreo",
- "Mazo terrestre",
- "Mazo equilibrado"
-];
-
-// Probabilidades ficticias del simulador.
-const matchup=[
- [0.35,0.75,0.60],
- [0.65,0.55,0.70],
- [0.45,0.70,0.65]
-];
-
-function matrix(){
- return [[0,0,0],[0,0,0],[0,0,0]];
+const KEY="clashAIData";
+const strategies=["Sabueso + Globo","Defensa y contraataque","Presión con Globo"];
+const opponents=["Mucho antiaéreo","Mazo terrestre","Mazo equilibrado"];
+// Probabilidades ficticias de victoria por estrategia y rival.
+const matchup=[[0.35,0.75,0.60],[0.65,0.55,0.70],[0.45,0.70,0.65]];
+function fresh(){return {scores:[0,0,0],attempts:[0,0,0],games:0,wins:0,losses:0,epsilon:0.18,winHistory:[],strategyHistory:[],opponentGames:[0,0,0],opponentWins:[0,0,0]};}
+let data=load();
+function load(){
+ let d;try{d=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){d=null}
+ if(!d||typeof d!=="object")d=fresh();
+ const f=fresh();
+ Object.keys(f).forEach(k=>{if(d[k]===undefined)d[k]=f[k]});
+ ["scores","attempts","opponentGames","opponentWins"].forEach(k=>{if(!Array.isArray(d[k]))d[k]=f[k].slice()});
+ d.scores=Array.from({length:3},(_,i)=>Number(d.scores[i])||0);
+ d.attempts=Array.from({length:3},(_,i)=>Number(d.attempts[i])||0);
+ d.opponentGames=Array.from({length:3},(_,i)=>Number(d.opponentGames[i])||0);
+ d.opponentWins=Array.from({length:3},(_,i)=>Number(d.opponentWins[i])||0);
+ if(!Array.isArray(d.winHistory))d.winHistory=[];
+ if(!Array.isArray(d.strategyHistory))d.strategyHistory=[];
+ d.recentLog=Array.isArray(d.recentLog)?d.recentLog:[];
+ d.rivalScores=Array.isArray(d.rivalScores)?d.rivalScores:Array.from({length:3},()=>d.scores.slice());
+ d.rivalAttempts=Array.isArray(d.rivalAttempts)?d.rivalAttempts:Array.from({length:3},()=>d.attempts.slice());
+ for(let r=0;r<3;r++){d.rivalScores[r]=Array.from({length:3},(_,s)=>Number(d.rivalScores[r]?.[s])||0);d.rivalAttempts[r]=Array.from({length:3},(_,s)=>Number(d.rivalAttempts[r]?.[s])||0)}
+ d.games=Number(d.games)||0;d.wins=Number(d.wins)||0;d.losses=Number(d.losses)||0;
+ return d;
 }
-
-function loadData(){
- try{
-  const d=JSON.parse(localStorage.getItem("clashAIData"));
-  if(d && Array.isArray(d.scores) && Array.isArray(d.attempts)){
-   return d;
-  }
- }catch(e){}
- return null;
-}
-
-const saved=loadData();
-
-let scores=saved?saved.scores:matrix();
-let attempts=saved?saved.attempts:matrix();
-let games=saved?Number(saved.games)||0:0;
-let wins=saved?Number(saved.wins)||0:0;
-let losses=saved?Number(saved.losses)||0:0;
-let epsilon=saved?Number(saved.epsilon)||0.25:0.25;
-
-let winHistory=saved&&Array.isArray(saved.winHistory)
- ?saved.winHistory:[];
-
-let strategyHistory=saved&&Array.isArray(saved.strategyHistory)
- ?saved.strategyHistory:[];
-
-let opponentGames=saved&&Array.isArray(saved.opponentGames)
- ?saved.opponentGames:[0,0,0];
-
-let opponentWins=saved&&Array.isArray(saved.opponentWins)
- ?saved.opponentWins:[0,0,0];
-
-let training=false;
-
-// Completar estructuras antiguas si fuera necesario.
-for(let i=0;i<3;i++){
- if(!Array.isArray(scores[i]))scores[i]=[0,0,0];
- if(!Array.isArray(attempts[i]))attempts[i]=[0,0,0];
- for(let j=0;j<3;j++){
-  scores[i][j]=Number(scores[i][j])||0;
-  attempts[i][j]=Number(attempts[i][j])||0;
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function choose(r){
+ if(Math.random()<data.epsilon)return Math.floor(Math.random()*3);
+ let best=0,bestVal=-Infinity,total=data.rivalAttempts[r].reduce((a,b)=>a+b,0);
+ for(let s=0;s<3;s++){
+  let n=data.rivalAttempts[r][s], bonus=n===0?1.5:Math.sqrt(2*Math.log(total+2)/n);
+  let value=data.rivalScores[r][s]+bonus;
+  if(value>bestVal){bestVal=value;best=s}
  }
-}
-
-if(winHistory.length===0 && games>0){
- winHistory.push({
-  games,
-  rate:Number((wins/games*100).toFixed(1))
- });
-}
-
-function getStrategyAverages(){
- const totals=[0,0,0];
- const uses=[0,0,0];
-
- for(let i=0;i<3;i++){
-  for(let j=0;j<3;j++){
-   totals[j]+=scores[i][j]*attempts[i][j];
-   uses[j]+=attempts[i][j];
-  }
- }
-
- return totals.map((v,j)=>uses[j]?v/uses[j]:0);
-}
-
-if(strategyHistory.length===0 && games>0){
- strategyHistory.push({
-  games,
-  values:getStrategyAverages()
- });
-}
-
-function saveData(){
- const data={
-  scores,attempts,games,wins,losses,epsilon,
-  winHistory,strategyHistory,opponentGames,opponentWins
- };
- try{
-  localStorage.setItem("clashAIData",JSON.stringify(data));
-  document.getElementById("saveStatus").textContent=
-   "✅ Datos guardados automáticamente";
- }catch(e){
-  document.getElementById("saveStatus").textContent=
-   "⚠️ No se pudieron guardar los datos";
- }
-}
-
-// Selección UCB: equilibra las mejores estrategias
-// con las estrategias que todavía necesitan pruebas.
-function chooseStrategy(opponent){
- if(Math.random()<epsilon){
-  return Math.floor(Math.random()*3);
- }
-
- const total=attempts[opponent].reduce((a,b)=>a+b,0);
- let best=0;
- let bestValue=-Infinity;
-
- for(let j=0;j<3;j++){
-  const n=attempts[opponent][j];
-  const bonus=0.7*Math.sqrt(Math.log(total+1)/(n+1));
-  const value=scores[opponent][j]+bonus;
-
-  if(value>bestValue){
-   bestValue=value;
-   best=j;
-  }
- }
-
  return best;
 }
-
-function recordHistory(){
- const averages=getStrategyAverages();
-
- strategyHistory.push({
-  games,
-  values:averages.map(v=>Number(v.toFixed(3)))
- });
-
- winHistory.push({
-  games,
-  rate:Number((wins/games*100).toFixed(1))
- });
-}
-
-function simulateOne(){
- const opponent=Math.floor(Math.random()*3);
- const strategy=chooseStrategy(opponent);
-
- const probability=Math.max(0.05,Math.min(0.95,
-  matchup[opponent][strategy]+(Math.random()-0.5)*0.30
- ));
-
- const victory=Math.random()<probability;
- const reward=victory?1:-1;
-
- attempts[opponent][strategy]++;
-
- // Aprendizaje adaptativo: actualiza la puntuación
- // según el número de pruebas de cada combinación.
- const n=attempts[opponent][strategy];
- const alpha=Math.max(0.04,1/Math.sqrt(n));
- scores[opponent][strategy]+=
-  alpha*(reward-scores[opponent][strategy]);
-
- games++;
- opponentGames[opponent]++;
-
- if(victory){
-  wins++;
-  opponentWins[opponent]++;
- }else{
-  losses++;
- }
-
- // La exploración baja lentamente, pero nunca desaparece.
- epsilon=Math.max(0.10,0.25*Math.exp(-games/1800));
-
- if(games%100===0){
-  recordHistory();
- }
-}
-
-function train(amount){
- if(training)return;
-
- training=true;
- const buttons=document.querySelectorAll("button");
- buttons.forEach(b=>b.disabled=true);
-
- let done=0;
- document.getElementById("result").textContent=
-  "🧠 La IA está entrenando...";
-
- function batch(){
-  const limit=Math.min(done+100,amount);
-
-  while(done<limit){
-   simulateOne();
-   done++;
-  }
-
-  const percent=Math.round(done/amount*100);
-  document.getElementById("progressBar").style.width=percent+"%";
-  document.getElementById("progressText").textContent=
-   "Entrenamiento: "+done+" / "+amount+" ("+percent+"%)";
-
-  saveData();
-  updateAll();
-
-  if(done<amount){
-   setTimeout(batch,20);
-  }else{
-   training=false;
-   buttons.forEach(b=>b.disabled=false);
-   document.getElementById("result").innerHTML=
-    "🏁 Entrenamiento terminado.<br>"+
-    amount+" partidas simuladas.";
+function train(n){
+ for(let i=0;i<n;i++){
+  let r=Math.floor(Math.random()*3),s=choose(r);
+  let probability=matchup[s][r];
+  // La experiencia influye ligeramente, sin superar el límite artificial del modelo.
+  probability=Math.max(.05,Math.min(.95,probability+(data.rivalScores[r][s]*.035)));
+  let win=Math.random()<probability,reward=win?1:-1;
+  data.games++;if(win){data.wins++;data.opponentWins[r]++}else data.losses++;
+  data.opponentGames[r]++;
+  data.attempts[s]++;data.rivalAttempts[r][s]++;
+  let a=1/Math.sqrt(data.rivalAttempts[r][s]);
+  data.rivalScores[r][s]+=a*(reward-data.rivalScores[r][s]);
+  let ga=1/Math.sqrt(data.attempts[s]);
+  data.scores[s]+=ga*(reward-data.scores[s]);
+  data.recentLog.push({w:win?1:0,r:r,s:s,reward:reward});
+  if(data.recentLog.length>2000)data.recentLog.shift();
+  if(data.games%100===0){
+   data.winHistory.push({games:data.games,rate:data.wins/data.games*100});
+   let total=data.attempts.reduce((a,b)=>a+b,0);
+   data.strategyHistory.push({games:data.games,values:data.scores.map((v,j)=>({score:v,uses:data.attempts[j]}))});
   }
  }
-
- batch();
+ data.epsilon=Math.max(.08,data.epsilon*.997);
+ save();render();
+ document.getElementById("lastStatus").textContent="Entrenamiento completado: "+n+" partida(s).";
 }
-
-function resetAI(){
- if(training)return;
- if(!confirm("¿Quieres borrar todo el aprendizaje y empezar desde cero?"))return;
-
- scores=matrix();
- attempts=matrix();
- games=0;
- wins=0;
- losses=0;
- epsilon=0.25;
- winHistory=[];
- strategyHistory=[];
- opponentGames=[0,0,0];
- opponentWins=[0,0,0];
-
- saveData();
- updateAll();
-
- document.getElementById("result").textContent=
-  "IA reiniciada correctamente.";
- document.getElementById("progressBar").style.width="0%";
- document.getElementById("progressText").textContent=
-  "Esperando entrenamiento...";
+function pct(a,b){return b?((a/b)*100).toFixed(1)+"%":"—"}
+function render(){
+ document.getElementById("games").textContent=data.games.toLocaleString("es-ES");
+ document.getElementById("wins").textContent=data.wins.toLocaleString("es-ES");
+ document.getElementById("losses").textContent=data.losses.toLocaleString("es-ES");
+ document.getElementById("rate").textContent=pct(data.wins,data.games);
+ document.getElementById("progress").style.width=(data.games%100)+"%";
+ document.getElementById("progressText").textContent=data.games+" partidas guardadas · exploración "+(data.epsilon*100).toFixed(1)+"%";
+ renderRivals();renderStrategies();renderRecent();renderOpponents();drawChart();
 }
-
-function updateStats(){
- document.getElementById("games").textContent=games;
- document.getElementById("wins").textContent=wins;
- document.getElementById("losses").textContent=losses;
- document.getElementById("rate").textContent=
-  (games?(wins/games*100).toFixed(1):0)+"%";
-
- document.getElementById("epsilonInfo").textContent=
-  "Exploración actual: "+(epsilon*100).toFixed(1)+"%";
-}
-
-function updateStrategies(){
- const averages=getStrategyAverages();
- const uses=[0,0,0];
-
- for(let i=0;i<3;i++){
-  for(let j=0;j<3;j++){
-   uses[j]+=attempts[i][j];
-  }
- }
-
- let best=0,most=0;
-
- for(let j=1;j<3;j++){
-  if(averages[j]>averages[best])best=j;
-  if(uses[j]>uses[most])most=j;
- }
-
- document.getElementById("historyBest").textContent=
-  "Mejor puntuación media: "+strategies[best];
-
- document.getElementById("historyUsed").textContent=
-  "Más utilizada: "+strategies[most];
-
- let html="";
-
- for(let j=0;j<3;j++){
-  html+="<div class='strategy'><strong>"+
-   strategies[j]+"</strong><br>"+
-   "Puntuación media: "+averages[j].toFixed(2)+
-   "<br>Pruebas realizadas: "+uses[j]+
-   "</div>";
- }
-
- document.getElementById("strategies").innerHTML=html;
-}
-
-function updateWinChart(){
- const chart=document.getElementById("winChart");
-
- if(winHistory.length===0){
-  chart.innerHTML="<p class='small'>Entrena para generar el gráfico.</p>";
-  document.getElementById("chartInfo").textContent="";
-  return;
- }
-
- let html="";
-
- winHistory.forEach(point=>{
-  const height=Math.max(3,Math.min(100,point.rate));
-
-  html+=`
-  <div class="chartColumn">
-   <div class="chartValue">${point.rate}%</div>
-   <div class="chartBar" style="height:${height}%"></div>
-   <div class="chartLabel">${point.games}</div>
-  </div>`;
+function renderRivals(){
+ let html="<table><tr><th>Rival</th><th>Mejor estrategia</th><th>Victorias</th><th>Datos</th></tr>";
+ opponents.forEach((name,r)=>{
+  let best=0;for(let s=1;s<3;s++)if(data.rivalScores[r][s]>data.rivalScores[r][best])best=s;
+  let uses=data.rivalAttempts[r].reduce((a,b)=>a+b,0);
+  let confidence=Math.min(100,Math.round(uses/30*100));
+  html+="<tr><td>"+name+"</td><td>"+strategies[best]+"</td><td>"+pct(data.opponentWins[r],data.opponentGames[r])+"</td><td>"+uses+" partidas<br><div class='progress'><div class='bar' style='width:"+confidence+"%'></div></div><span class='small'>Cobertura "+confidence+"%</span></td></tr>";
  });
-
- chart.innerHTML=html;
-
- document.getElementById("chartInfo").textContent=
-  "Registros: "+winHistory.length+
-  " · Último: "+winHistory[winHistory.length-1].games+" partidas";
+ document.getElementById("rivalLearning").innerHTML=html+"</table><p class='small muted'>La cobertura indica cuántas observaciones tiene el simulador; no es una medida estadística de certeza.</p>";
 }
-
-function updateStrategyChart(){
- const chart=document.getElementById("strategyChart");
-
- if(strategyHistory.length===0){
-  chart.innerHTML="<p class='small'>Entrena para generar la gráfica.</p>";
-  document.getElementById("strategyChartInfo").textContent="";
-  return;
+function renderStrategies(){
+ let html="<table><tr><th>Estrategia</th><th>Valor aprendido</th><th>Usos</th></tr>";
+ strategies.forEach((s,i)=>html+="<tr><td>"+s+"</td><td class='"+(data.scores[i]>=0?"good":"bad")+"'>"+data.scores[i].toFixed(2)+"</td><td>"+data.attempts[i]+"</td></tr>");
+ document.getElementById("strategyStats").innerHTML=html+"</table>";
+}
+function average(arr){return arr.length?arr.reduce((a,b)=>a+b.reward,0)/arr.length:null}
+function renderRecent(){
+ let log=data.recentLog||[],html="";
+ if(log.length<200){html="<p>Comparación disponible cuando esta versión acumule 200 partidas nuevas. Ahora hay "+log.length+"/200.</p>";}
+ else{
+  let prev=log.slice(-200,-100),last=log.slice(-100);
+  let p=average(prev),l=average(last),diff=(l-p)*100;
+  html="<p>Últimas 100: <strong>"+pct(last.reduce((a,x)=>a+x.w,0),100)+"</strong></p><p>100 anteriores: <strong>"+pct(prev.reduce((a,x)=>a+x.w,0),100)+"</strong></p><p class='"+(diff>=0?"good":"bad")+"'>Cambio: "+(diff>=0?"+":"")+diff.toFixed(1)+" puntos porcentuales</p>";
  }
-
- let html="";
-
- strategyHistory.forEach(point=>{
-  const average=point.values.reduce((a,b)=>a+b,0)/3;
-  const height=Math.max(3,Math.min(100,((average+1)/2)*100));
-
-  html+=`
-  <div class="chartColumn">
-   <div class="chartValue">${average.toFixed(2)}</div>
-   <div class="chartBar" style="height:${height}%"></div>
-   <div class="chartLabel">${point.games}</div>
-  </div>`;
- });
-
- chart.innerHTML=html;
-
- document.getElementById("strategyChartInfo").textContent=
-  "Registros de aprendizaje: "+strategyHistory.length+
-  " · Escala de puntuación: -1 a +1";
+ let alerts=[];
+ for(let s=0;s<3;s++){
+  let items=log.filter(x=>x.s===s);
+  let before=items.slice(-200,-100),recent=items.slice(-100);
+  if(before.length>=10&&recent.length>=10&&average(recent)<average(before)-.15)alerts.push(strategies[s]+" muestra un descenso reciente.");
+ }
+ html+="<p>"+(alerts.length?alerts.map(x=>"⚠️ "+x).join("<br>"):"<span class='good'>Sin alertas de deterioro detectadas.</span>")+"</p>";
+ html+="<p class='small muted'>El historial detallado comienza al instalar esta versión. Las 2.100 partidas anteriores se conservan en los totales, pero no se pueden reconstruir partida por partida.</p>";
+ document.getElementById("recentAnalysis").innerHTML=html;
 }
-
-function updateOpponents(){
+function renderOpponents(){
  let html="<table><tr><th>Rival</th><th>Partidas</th><th>Victorias</th><th>%</th></tr>";
-
- for(let i=0;i<3;i++){
-  const rate=opponentGames[i]
-   ?(opponentWins[i]/opponentGames[i]*100).toFixed(1):"0.0";
-
-  html+="<tr><td>"+opponents[i]+"</td>"+
-   "<td>"+opponentGames[i]+"</td>"+
-   "<td>"+opponentWins[i]+"</td>"+
-   "<td>"+rate+"%</td></tr>";
- }
-
- html+="</table>";
- document.getElementById("opponentStats").innerHTML=html;
+ opponents.forEach((o,i)=>html+="<tr><td>"+o+"</td><td>"+data.opponentGames[i]+"</td><td>"+data.opponentWins[i]+"</td><td>"+pct(data.opponentWins[i],data.opponentGames[i])+"</td></tr>");
+ document.getElementById("opponentStats").innerHTML=html+"</table>";
 }
-
-function updateAll(){
- updateStats();
- updateStrategies();
- updateWinChart();
- updateStrategyChart();
- updateOpponents();
+function drawChart(){
+ let c=document.getElementById("winChart"),ctx=c.getContext("2d"),w=c.width,h=c.height;
+ ctx.clearRect(0,0,w,h);ctx.strokeStyle="#40536c";ctx.lineWidth=1;
+ for(let i=0;i<=4;i++){let y=15+i*(h-35)/4;ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(w-10,y);ctx.stroke();ctx.fillStyle="#b9c5d6";ctx.fillText((100-i*25)+"%",5,y+4)}
+ let points=data.winHistory.slice(-30);
+ if(!points.length){ctx.fillStyle="#b9c5d6";ctx.fillText("El gráfico aparecerá al completar nuevos bloques de 100 partidas.",50,105);return}
+ ctx.strokeStyle="#42d392";ctx.lineWidth=3;ctx.beginPath();
+ points.forEach((p,i)=>{let x=45+(points.length===1?0:i*(w-65)/(points.length-1));let y=15+(100-p.rate)*(h-35)/100;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});
+ ctx.stroke();points.forEach((p,i)=>{let x=45+(points.length===1?0:i*(w-65)/(points.length-1));let y=15+(100-p.rate)*(h-35)/100;ctx.fillStyle="#ffd166";ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill()});
 }
-
 function exportData(){
- const data=localStorage.getItem("clashAIData");
-
- if(!data){
-  alert("No hay datos para exportar.");
-  return;
- }
-
- const blob=new Blob([data],{type:"application/json"});
- const url=URL.createObjectURL(blob);
- const a=document.createElement("a");
- a.href=url;
- a.download="clash-ai-respaldo.json";
- a.click();
- URL.revokeObjectURL(url);
+ let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="clash-ai-copia.json";a.click();URL.revokeObjectURL(url);
 }
-
-function importData(){
- document.getElementById("importFile").click();
-}
-
-document.getElementById("importFile").addEventListener("change",function(e){
- const file=e.target.files[0];
- if(!file)return;
-
- const reader=new FileReader();
-
- reader.onload=function(){
-  try{
-   const data=JSON.parse(reader.result);
-
-   if(!Array.isArray(data.scores)||
-      !Array.isArray(data.attempts)||
-      !Number.isFinite(Number(data.games))||
-      !Number.isFinite(Number(data.wins))||
-      !Number.isFinite(Number(data.losses))){
-    throw new Error("Datos incorrectos");
-   }
-
-   if(!confirm("¿Quieres sustituir los datos actuales por el respaldo?"))return;
-
-   localStorage.setItem("clashAIData",JSON.stringify(data));
-   location.reload();
-  }catch(err){
-   alert("El archivo no es un respaldo válido de Clash AI.");
-  }
- };
-
+function importData(e){
+ let file=e.target.files[0];if(!file)return;let reader=new FileReader();
+ reader.onload=()=>{try{let incoming=JSON.parse(reader.result);if(!incoming||typeof incoming!=="object")throw Error();localStorage.setItem(KEY,JSON.stringify(incoming));data=load();render();alert("Copia importada correctamente.")}catch(err){alert("No se pudo importar: archivo no válido.")}};
  reader.readAsText(file);
-});
-
-saveData();
-updateAll();
+}
+function resetAI(){
+ if(!confirm("¿Seguro que quieres reiniciar? Se borrarán las estadísticas guardadas en este dispositivo."))return;
+ data=fresh();save();render();document.getElementById("lastStatus").textContent="IA reiniciada.";
+}
+render();
 </script>
 </body>
 </html>
